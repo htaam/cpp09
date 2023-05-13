@@ -13,21 +13,85 @@ BitcoinExchange::BitcoinExchange(BitcoinExchange const& src){
 }
 
 BitcoinExchange& BitcoinExchange::operator=(BitcoinExchange const& rhs){
-    _rates = rhs._rates;
+    data = rhs.data;
     return(*this);
 }
 
-void BitcointExchange::build(void){
-    std::ifstream _database;
-    _database.open("data.csv");
-    if (!_database.is_open()){
-        throw std::runtime_error ("Could not pen data file");
-    }
+
+double BitcoinExchange::to_double(std::string& input)
+{
+	std::istringstream ss(input);
+	double res;
+	ss >> res;
+	return (res);
+}
+
+float BitcoinExchange::to_float(std::string& input)
+{
+	std::istringstream ss(input);
+	float res;
+	ss >> res;
+	return (res);
+}
+
+std::string BitcoinExchange::to_string(int & value) 
+{
+    std::ostringstream oss;
+    oss << value;
+    return oss.str();
+}
+
+void BitcoinExchange::readData()
+{
+    std::ifstream file;
+    file.open("data.csv");
+    if (!file.is_open())
+        throw std::runtime_error("Could not open data.csv");
     std::string line;
-    while (std::getline(_database, line)){
-        std::string key = line.substr(0, line.find(','));
-        std::string value = line.substr(line.find(',') + 1, line.length() - line.find(','));
-        _rates[key] = std::atof(value.c_str());
+
+    while (std::getline(file, line))
+    {
+        std::stringstream ss(line);
+        std::string date, rate;
+        std::getline(ss, date, ',');
+        std::getline(ss, rate, ',');
+        this->data[date] = to_double(rate);
     }
-    _database.close();
+}
+
+void BitcoinExchange::validateInput(char *file)
+{
+    std::ifstream inputFile(file);
+    if (!inputFile)
+        throw std::runtime_error("Could not open input file");
+    
+    std::string firstLine;
+    std::getline(inputFile,firstLine);
+    if (firstLine.compare("date | value"))
+        throw std::runtime_error("Error: Format expected on first line: 'date | value'.");
+
+    std::string line;
+
+    while (std::getline(inputFile, line))
+    {
+        std::istringstream iss(line);
+        std::string date, value;
+        char separator;
+
+        if (!(iss >> date >> separator >> value) || separator != '|')
+            std::cout << "Error: bad input => "+date << std::endl;
+        else if (!validateDate(date) || !validateValue(value))
+            std::cout << "Error: bad input => "+date << std::endl;
+        else if (to_double(value) < 0)
+            std::cout << "Error: not a positive number" << std::endl;
+        else if(to_double(value) > 1000)
+			std::cout << "Error: too large a number." << std::endl;
+		else if (to_double(value) < 1000 || to_double(value) > 0)
+        {
+            double mult= to_double(value) * findRate(date);
+            std::cout << date << " => " << value << " = " << mult << std::endl;
+        }
+        else
+            std::cout << "Error: bad input => " << date << std::endl;
+    }
 }
