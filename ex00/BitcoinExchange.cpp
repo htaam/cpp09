@@ -94,4 +94,22 @@ void BitcoinExchange::validateInput(char *file)
         else
             std::cout << "Error: bad input => " << date << std::endl;
     }
+    inputFile.close()
+}
+
+double BitcoinExchange::findRate(std::string date){
+    if(this->data[date])
+        return this->data[date];
+    else
+    {
+        std::string prev_day =  moveDataBackOneDay(date);
+        if (!prev_day.compare("Invalid date!"))
+            return (0);
+        return (findRate(prev_day));
+    }
+}
+
+std::string BitcoinExchange::moveDataBackOneDay(const std::string &date)
+{
+    
 }
