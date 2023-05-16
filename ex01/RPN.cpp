@@ -59,8 +59,8 @@ void RPN::ReadInput(std::string input)
             op++;
             int n1 = _numbers.top();
             _numbers.pop();
-            cont++;
-            if (!_numbers.pop())
+            count++;
+            if (!_numbers.empty())
                 _numbers.top() = CalculateResult(n1, _numbers.top(), input[i]);
             else   
                 throw std::invalid_argument("Number of operators less or greater then numbers\n");
@@ -69,6 +69,8 @@ void RPN::ReadInput(std::string input)
             continue;
         else
             throw std::invalid_argument("Error\n");
-            
     }
+    if ((op + 1) != num)
+        throw std::invalid_argument("Number of operators less or greater then numbers\n");
+    std::cout<< "Result: " << _numbers.top() << std::endl;
 }
